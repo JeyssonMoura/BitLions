@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
-using Photon.Pun;
-using Photon.Realtime;
 
 public class ControlePersonagem : MonoBehaviour {
 
@@ -23,6 +21,7 @@ public class ControlePersonagem : MonoBehaviour {
 	private float velH = 90, velV = 5f;
 	public float hM, vM, hPC, vPC, forcaPulo, t;
 	public int statusAnim = 0, Masc1Femi2 = 0;
+	public bool noChao;
 
 	void Start () {
 		GetComponent<Rigidbody> ().isKinematic = false;
@@ -33,19 +32,24 @@ public class ControlePersonagem : MonoBehaviour {
 	}
 
 	void Update () {
+		noChao = Physics.Raycast (transform.position, -Vector3.up, 0.5f);
 		//Animações
-		if (vPC != 0 || vM != 0 || hPC != 0 || hM != 0) {
-			if (statusAnim != 0) {
-				audio.pitch = 1.5f;
-				audio.clip = audios [0];
-				if (!audio.isPlaying) {
-					audio.Play ();
+		if (noChao) {
+			if (vPC != 0 || vM != 0 || hPC != 0 || hM != 0) {
+				if (statusAnim != 0) {
+					audio.pitch = 1.5f;
+					audio.clip = audios [0];
+					if (!audio.isPlaying) {
+						audio.Play ();
+					}
 				}
+			} else {
+				audio.Stop ();
 			}
 		} else {
 			audio.Stop ();
 		}
-		if (GetComponent<PhotonView> ().IsMine == false) {
+		if (GetComponent<PhotonView> ().isMine == false) {
 			transform.position = transform.position;
 			transform.rotation = transform.rotation;
 		}
@@ -53,35 +57,47 @@ public class ControlePersonagem : MonoBehaviour {
 
 	void FixedUpdate () {
 
-		if(PhotonNetwork.NetworkClientState == ClientState.Joined && GetComponent<PhotonView>().IsMine == false){
+		if(PhotonNetwork.connectionStateDetailed == ClientState.Joined && GetComponent<PhotonView>().isMine == false){
 			return;
 		}
 
-		//Base Caiu
-		Vector3 fwd = transform.TransformDirection ( -Vector3.up );
+		if (Physics.Raycast (transform.position, -Vector3.up, 0.1f)) {
+			GetComponent<Rigidbody> ().velocity = new Vector3 (0, -forcaPulo*2, 0);
+			anim.enabled = true;
+		}
 
-		if (!Physics.Raycast (transform.position, fwd, 0.5f)) {
-			statusAnim = 0;
-		} else {
-			//Pular
-			if (Input.GetKey (KeyCode.Space) || AuxClick.clickPular != 0) {
-				//GetComponent<Rigidbody> ().AddForce (Vector3.up * forcaPulo);
-				statusAnim = 3;
-			} else {
-				//Controles
-				hM = CrossPlatformInputManager.GetAxis ("Horizontal");
-				vM = CrossPlatformInputManager.GetAxis ("Vertical");
-
-				hPC = Input.GetAxis ("Horizontal");
-				vPC = Input.GetAxis ("Vertical");
-
-				//GetComponent<Rigidbody> ().AddForce (Vector3.up * (forcaPulo)*-1);
+		if (t >= 1 && t <= 1.8f) {
+			t += Time.deltaTime;
+			if (t >= 1.4f) {
+				GetComponent<Rigidbody> ().velocity = new Vector3 (0, forcaPulo, 0);
 			}
 		}
 
+		if (t >= 1.8f) {
+			anim.enabled = false;
+			statusAnim = 0;
+			t = 0;
+		}
+
+		//Pular
+		if (Input.GetButtonDown ("Jump") || AuxClick.clickPular != 0) {
+			if (noChao && t == 0) {
+				statusAnim = 3;
+				t = 1;
+			}
+			AuxClick.clickPular = 0;
+		}
+
+		//Controles
+		hM = CrossPlatformInputManager.GetAxis ("Horizontal");
+		vM = CrossPlatformInputManager.GetAxis ("Vertical");
+
+		hPC = Input.GetAxis ("Horizontal");
+		vPC = Input.GetAxis ("Vertical");
+
 		//Nick
 		nick.text = "JOGADOR";
-		GetComponent<PhotonView> ().RPC ("Nick", RpcTarget.All, "JOGADOR");
+		GetComponent<PhotonView> ().RPC ("Nick", PhotonTargets.All, "JOGADOR");
 
 		//Movimentar
 		if (vPC > 0.2f || vM > 0.2f || vPC < -0.2f || vM < -0.2f) {
@@ -91,19 +107,20 @@ public class ControlePersonagem : MonoBehaviour {
 		transform.Translate (0, 0, vM * Time.deltaTime * velV);
 		transform.Translate (0, 0, vPC * Time.deltaTime * velV);
 
-		//Parado
-		if (vPC == 0 || vM == 0 || hPC == 0 || hM == 0) {
-			statusAnim = 0;
-		}
-
-		//Correr
-		if (vPC > 0.2f || vM > 0.2f) {
-			statusAnim = 1;
-		} else {
-			if (vPC < -0.2f || vM < -0.2f) {
-				statusAnim = 2;
-			} else {
+		if (noChao && statusAnim != 3) {
+			//Parado
+			if (vPC == 0 || vM == 0 || hPC == 0 || hM == 0) {
 				statusAnim = 0;
+			}
+			//Correr
+			if (vPC > 0.2f || vM > 0.2f) {
+				statusAnim = 1;
+			} else {
+				if (vPC < -0.2f || vM < -0.2f) {
+					statusAnim = 2;
+				} else {
+					statusAnim = 0;
+				}
 			}
 		}
 
@@ -115,8 +132,8 @@ public class ControlePersonagem : MonoBehaviour {
 		}
 
 		//Animação em Rede
-		GetComponent<PhotonView> ().RPC ("AnimPersonagem", RpcTarget.All, statusAnim);
-		GetComponent<PhotonView> ().RPC ("TipoPersonagem", RpcTarget.All, Masc1Femi2);
+		GetComponent<PhotonView> ().RPC ("AnimPersonagem", PhotonTargets.All, statusAnim);
+		GetComponent<PhotonView> ().RPC ("TipoPersonagem", PhotonTargets.All, Masc1Femi2);
 
 	}
 
@@ -132,7 +149,7 @@ public class ControlePersonagem : MonoBehaviour {
 	[PunRPC]
 	public void Nick (string _nick) {
 		nick.text = _nick;
-		transform.name = _nick + GetComponent<PhotonView> ().ViewID.ToString ();
+		transform.name = _nick + GetComponent<PhotonView> ().viewID.ToString();
 	}
 
 	[PunRPC]

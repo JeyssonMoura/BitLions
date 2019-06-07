@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
-using Photon.Pun;
-using Photon.Realtime;
 
-public class Server : MonoBehaviourPunCallbacks {
+public class Server : MonoBehaviour {
 
 	//Aux
 	private HUD AuxHUD;
 	private Click AuxClick;
 	private CameraAlvo AuxCameraAlvo;
 
-	public string statusConexao, nomeServer;
+	public string nomeServer;
 	public GameObject meuPersonagem;
 	public GameObject[] personagens, listaJogadores;
 
@@ -28,12 +26,13 @@ public class Server : MonoBehaviourPunCallbacks {
 	}
 
 	public void SpawnPersonagem () {
-		if (PhotonNetwork.NetworkClientState == ClientState.Joined) {
+		if (PhotonNetwork.connectionStateDetailed == ClientState.Joined) {
 			if (meuPersonagem == null) {
 				meuPersonagem = PhotonNetwork.Instantiate (personagens [0].transform.name.ToString (), transform.position, transform.rotation, 0);
 				AuxCameraAlvo.Alvo = meuPersonagem;
 				Respawn ();
 			}
+			Debug.Log ("Conectado!");
 		}
 	}
 
@@ -45,35 +44,32 @@ public class Server : MonoBehaviourPunCallbacks {
 	}
 
 	public void Conectar() {
-		PhotonNetwork.ConnectUsingSettings ();
-		PhotonNetwork.GameVersion = "v1.0";
-		statusConexao = "Conectando...";
+		PhotonNetwork.ConnectUsingSettings ("v1.0");
 		Debug.Log ("Conectando...");
 	}
 
-	public override void OnConnectedToMaster() {
-		Debug.Log("Conectando ao Master...");
-		PhotonNetwork.JoinRoom (nomeServer);
+	public virtual void OnConnectedToMaster() {
+		Debug.Log("Conectando: Master");
+		PhotonNetwork.JoinOrCreateRoom(nomeServer, new RoomOptions(){ isVisible = true, maxPlayers = 20 } ,null);
 	}
 
-	public override void OnJoinedLobby() {
-		Debug.Log("Entrou no Lobby...");
-		PhotonNetwork.JoinRoom (nomeServer);
+	public virtual void OnJoinedLobby() {
+		Debug.Log("Conectando: Lobby");
+		PhotonNetwork.JoinOrCreateRoom(nomeServer, new RoomOptions(){ isVisible = true, maxPlayers = 20 } ,null);
 	}
 
-	public override void OnJoinRoomFailed(short returnCode, string message) {
-		Debug.Log("Criando sala...");
-		PhotonNetwork.CreateRoom(nomeServer, new RoomOptions() { MaxPlayers = 10 }, null);
-	}
-		
-	public override void OnDisconnected(DisconnectCause cause) {
-		statusConexao = "Problema de conexão!";
-		Debug.Log("Error:("+cause+")");
+	public virtual void OnPhotonJoinRoomFailed() {
+		Debug.Log("Falha ao criar a sala!");
+		PhotonNetwork.CreateRoom(nomeServer, new RoomOptions(){ isVisible = true, maxPlayers = 20 } ,null);
 	}
 
-	public override void OnJoinedRoom() {
-		statusConexao = "Conectado!";
+	public virtual void OnFailedToConnectToPhoton(DisconnectCause cause) {
+		Debug.LogError("Erro: " + cause);
+	}
+
+	public void OnJoinedRoom() {
 		SpawnPersonagem ();
 		Debug.Log("Entrou na sala!");
 	}
+
 }

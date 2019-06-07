@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
-using Photon.Pun;
-using Photon.Realtime;
 
 public class Click : MonoBehaviour {
 

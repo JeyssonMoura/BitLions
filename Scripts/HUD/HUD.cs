@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
-using Photon.Pun;
-using Photon.Realtime;
 
 public class HUD : MonoBehaviour {
 
@@ -30,7 +28,7 @@ public class HUD : MonoBehaviour {
 	void Update () {
 		if (Application.loadedLevelName != "Principal") {
 			//Conexão
-			if (PhotonNetwork.NetworkClientState == ClientState.Joined) {
+			if (PhotonNetwork.connectionStateDetailed == ClientState.Joined) {
 				GetComponent<Canvas> ().enabled = true;
 				GetComponent<GraphicRaycaster> ().enabled = true;
 			}
