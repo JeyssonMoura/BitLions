@@ -282,7 +282,7 @@ Transform:
   m_LocalScale: {x: 2.7906082, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &338700746
 GameObject:
@@ -417,7 +417,7 @@ GameObject:
   - component: {fileID: 683899375}
   - component: {fileID: 683899374}
   m_Layer: 5
-  m_Name: BT_Correr
+  m_Name: BT_Pular
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -440,14 +440,13 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -45, y: 65}
-  m_SizeDelta: {x: 65, y: 65}
+  m_AnchoredPosition: {x: -60, y: 65}
+  m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &683899374
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 114403901103360618, guid: d121f91d92978784d860b4abbbddd3a6,
-    type: 2}
+  m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 683899372}
   m_Enabled: 1
@@ -467,23 +466,6 @@ MonoBehaviour:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
             m_IntArgument: 1
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-      m_TypeName: UnityEngine.EventSystems.EventTrigger+TriggerEvent, UnityEngine.UI,
-        Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  - eventID: 3
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1488537783}
-          m_MethodName: ClickPular
-          m_Mode: 3
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
             m_BoolArgument: 0
@@ -618,7 +600,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c3c865782347f41b6358d9fba14b48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MovementRange: 50
+  MovementRange: 80
   axesToUse: 0
   horizontalAxisName: Horizontal
   verticalAxisName: Vertical
@@ -873,7 +855,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 45, y: -30, z: 0}
 --- !u!1 &1314520616
 GameObject:
@@ -1436,7 +1418,7 @@ Transform:
   m_LocalScale: {x: 2.7906082, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1922442481
 GameObject:
@@ -1465,12 +1447,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bacd1fec6a8bb3f4d935c77b062ca9e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  statusConexao: 
   nomeServer: Server01
   meuPersonagem: {fileID: 0}
   personagens:
-  - {fileID: 1582108615527958, guid: 967de262ec6ac7a43b25366917663177, type: 2}
-  - {fileID: 1582108615527958, guid: 967de262ec6ac7a43b25366917663177, type: 2}
+  - {fileID: 1582108615527958, guid: c6ceb8d22c5b14442a60b03c7ccc5952, type: 2}
+  - {fileID: 1582108615527958, guid: c6ceb8d22c5b14442a60b03c7ccc5952, type: 2}
   listaJogadores: []
 --- !u!4 &1922442483
 Transform:
@@ -1522,7 +1503,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 100, y: 100}
-  m_SizeDelta: {x: 140, y: 140}
+  m_SizeDelta: {x: 180, y: 180}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2016667121
 MonoBehaviour:
