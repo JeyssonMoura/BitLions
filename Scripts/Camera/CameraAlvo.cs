@@ -11,6 +11,7 @@ public class CameraAlvo : MonoBehaviour {
 	public GameObject Alvo;
 	public float velRot, x, y, tempoClick;
 	private Vector2 vecInput;
+	private RaycastHit hit;
 
 	void Start () {
 		AuxServer = GameObject.Find("Server").GetComponent<Server> ();
@@ -43,6 +44,13 @@ public class CameraAlvo : MonoBehaviour {
 						tempoClick = 0;
 					}
 					if (tempoClick == 0) {
+						if (!Physics.Linecast (Alvo.transform.position, Alvo.transform.GetChild (0).transform.position)) {
+							transform.position = Vector3.Lerp (transform.position, Alvo.transform.GetChild (0).transform.position, velRot * Time.deltaTime);
+							Debug.DrawLine (Alvo.transform.position, Alvo.transform.GetChild (0).transform.position);
+						} else if (Physics.Linecast (Alvo.transform.position, Alvo.transform.GetChild (0).transform.position, out hit)) {
+							transform.position = Vector3.Lerp (transform.position, hit.point, (velRot * 5) * Time.deltaTime);
+							Debug.DrawLine (Alvo.transform.position, hit.point);
+						}
 						transform.position = Vector3.Lerp (transform.position, Alvo.transform.GetChild (0).transform.position, velRot * Time.deltaTime);
 						Debug.DrawLine (Alvo.transform.position, Alvo.transform.GetChild (0).transform.position);
 						transform.LookAt (Alvo.transform);

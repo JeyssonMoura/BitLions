@@ -18,7 +18,7 @@ public class ControlePersonagem : MonoBehaviour {
 	public AudioClip[] audios;
 	public Vector3 scala;
 
-	private float velH = 90, velV = 5f;
+	private float velH = 90, velV;
 	public float hM, vM, hPC, vPC, forcaPulo, t;
 	public int statusAnim = 0, Masc1Femi2 = 0;
 	public bool noChao;
@@ -62,8 +62,12 @@ public class ControlePersonagem : MonoBehaviour {
 		}
 
 		if (Physics.Raycast (transform.position, -Vector3.up, 0.1f)) {
-			GetComponent<Rigidbody> ().velocity = new Vector3 (0, -forcaPulo*2, 0);
+			GetComponent<Rigidbody> ().velocity = new Vector3 (0, -forcaPulo * 2, 0);
 			anim.enabled = true;
+		}
+
+		if (!noChao && statusAnim != 3 && anim.enabled == true) {
+			GetComponent<Rigidbody> ().velocity = new Vector3 (0, -forcaPulo * 2, 0);
 		}
 
 		if (t >= 1 && t <= 1.8f) {
@@ -100,12 +104,17 @@ public class ControlePersonagem : MonoBehaviour {
 		GetComponent<PhotonView> ().RPC ("Nick", PhotonTargets.All, "JOGADOR");
 
 		//Movimentar
-		if (vPC > 0.2f || vM > 0.2f || vPC < -0.2f || vM < -0.2f) {
-			transform.Rotate (0, hM * Time.deltaTime * velH, 0);
-			transform.Rotate (0, hPC * Time.deltaTime * velH, 0);
-		}
+		transform.Rotate (0, hM * Time.deltaTime * velH, 0);
+		transform.Rotate (0, hPC * Time.deltaTime * velH, 0);
 		transform.Translate (0, 0, vM * Time.deltaTime * velV);
 		transform.Translate (0, 0, vPC * Time.deltaTime * velV);
+
+		//Velocidade
+		if (vPC < -0.2f || vM < -0.2f) {
+			velV = 1.5f;
+		} else {
+			velV = 7f;
+		}
 
 		if (noChao && statusAnim != 3) {
 			//Parado
