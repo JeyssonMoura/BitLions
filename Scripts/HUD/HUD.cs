@@ -6,33 +6,57 @@ using UnityEngine;
 public class HUD : MonoBehaviour {
 
 	//Aux 
-	private Click AuxClick;
 	private Server AuxServer;
 	private CarregarCena AuxCarregarCena;
+	private TempoPartida AuxTempoPartida;
 
-	public Text statusConectar;
+	public Text ranking, tempoPartida, statusConexao;
 	public AudioClip audioClick, audioAviso;
 	public GameObject[] boxHUD;
 
 	void Start () {
 		QualitySettings.SetQualityLevel (1);
+		GetComponent<Canvas> ().enabled = false;
+		GetComponent<GraphicRaycaster> ().enabled = false;
+		AuxServer = GameObject.Find ("Server").GetComponent<Server> ();
+		AuxTempoPartida = GameObject.Find ("TempoPartida").GetComponent<TempoPartida> ();
 		AuxCarregarCena = GameObject.Find ("CarregarNovaCena").GetComponent<CarregarCena> ();
-		if (Application.loadedLevelName != "Principal") {
-			AuxClick = GameObject.Find ("HUD").GetComponent<Click> ();
-			AuxServer = GameObject.Find ("Server").GetComponent<Server> ();
-			GetComponent<Canvas> ().enabled = false;
-			GetComponent<GraphicRaycaster> ().enabled = false;
-		}
 	}
 
 	void Update () {
-		if (Application.loadedLevelName != "Principal") {
-			//Conexão
-			if (PhotonNetwork.connectionStateDetailed == ClientState.Joined) {
-				GetComponent<Canvas> ().enabled = true;
-				GetComponent<GraphicRaycaster> ().enabled = true;
+		//Conexão
+		if (PhotonNetwork.connectionStateDetailed == ClientState.Joined) {
+			GetComponent<Canvas> ().enabled = true;
+			GetComponent<GraphicRaycaster> ().enabled = true;
+		}
+
+		if (AuxServer.meuPersonagem != null) {
+			if (AuxServer.listaJogadores.Length > 1) {
+				for (int i = 0; i < AuxServer.listaJogadores.Length - 1; i++) {
+					if (AuxServer.listaJogadores [i].GetComponent<Inventario> ().getMinhasMoedas () >
+					    AuxServer.listaJogadores [i + 1].GetComponent<Inventario> ().getMinhasMoedas ()) {
+						ranking.text = "1º " + AuxServer.listaJogadores [i].GetComponent<ControlePersonagem> ().nick.text.ToString ()
+						+ " - " + AuxServer.listaJogadores [i].GetComponent<Inventario> ().getMinhasMoedas () + "/10 Moedas\n";
+					}
+				}
+			} else {
+				if (AuxServer.listaJogadores.Length == 1) {
+					ranking.text = "1º " + AuxServer.listaJogadores [0].GetComponent<ControlePersonagem> ().nick.text.ToString ()
+					+ " - " + AuxServer.listaJogadores [0].GetComponent<Inventario> ().getMinhasMoedas () + "/10 Moedas\n";
+				}
 			}
 		}
+
+		if (AuxTempoPartida.tempo < AuxTempoPartida.maxTempo-1) {
+			tempoPartida.text = Mathf.Round (AuxTempoPartida.maxTempo - AuxTempoPartida.tempo).ToString ();
+		} else {
+			tempoPartida.text = "VAI!";
+		}
+
+		if (AuxTempoPartida.tempo == -1) {
+			tempoPartida.text = "";
+		}
+
 	}
 
 	public void abrirBox (int idBox) {
@@ -49,11 +73,6 @@ public class HUD : MonoBehaviour {
 		boxHUD [idBox].GetComponent<Canvas> ().enabled = false;
 		if (boxHUD [idBox].GetComponent<GraphicRaycaster> () != null) {
 			boxHUD [idBox].GetComponent<GraphicRaycaster> ().enabled = false;
-		}
-		//Fecha Botão de opções
-		if (idBox == 5) {
-			boxHUD [5].transform.GetChild (1).GetComponent<Canvas> ().enabled = false;
-			boxHUD [5].transform.GetChild (1).GetComponent<GraphicRaycaster> ().enabled = false;
 		}
 	}
 

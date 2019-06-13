@@ -5,16 +5,13 @@ using UnityStandardAssets.CrossPlatformInput;
 
 public class CameraAlvo : MonoBehaviour {
 
-	//Aux
-	private Server AuxServer;
-
 	public GameObject Alvo;
 	public float velRot, x, y, tempoClick;
 	private Vector2 vecInput;
 	private RaycastHit hit;
 
 	void Start () {
-		AuxServer = GameObject.Find("Server").GetComponent<Server> ();
+		
 	}
 
 	void Update () {

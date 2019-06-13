@@ -7,10 +7,9 @@ using UnityStandardAssets.CrossPlatformInput;
 public class ControlePersonagem : MonoBehaviour {
 
 	//Aux
-	private HUD AuxHUD;
 	private Click AuxClick;
 	private Server AuxServer;
-	private CameraAlvo AuxCameraAlvo;
+	private TempoPartida AuxTempoPartida;
 
 	public TextMesh nick;
 	public Animator anim;
@@ -20,15 +19,16 @@ public class ControlePersonagem : MonoBehaviour {
 
 	private float velH = 90, velV;
 	public float hM, vM, hPC, vPC, forcaPulo, t;
-	public int statusAnim = 0, Masc1Femi2 = 0;
+	public int statusAnim = 0, Masc1Femi2;
 	public bool noChao;
 
 	void Start () {
-		GetComponent<Rigidbody> ().isKinematic = false;
-		AuxHUD = GameObject.Find ("HUD").GetComponent<HUD> ();
-		AuxServer = GameObject.Find ("Server").GetComponent<Server> ();
+		if(PhotonNetwork.connectionStateDetailed == ClientState.Joined && GetComponent<PhotonView>().isMine == false){
+			return;
+		}
 		AuxClick = GameObject.Find ("HUD").GetComponent<Click> ();
-		AuxCameraAlvo = GameObject.Find ("CameraPrincipal").GetComponent<CameraAlvo> ();
+		AuxServer = GameObject.Find ("Server").GetComponent<Server> ();
+		AuxTempoPartida = GameObject.Find ("TempoPartida").GetComponent<TempoPartida> ();
 	}
 
 	void Update () {
@@ -49,10 +49,6 @@ public class ControlePersonagem : MonoBehaviour {
 		} else {
 			audio.Stop ();
 		}
-		if (GetComponent<PhotonView> ().isMine == false) {
-			transform.position = transform.position;
-			transform.rotation = transform.rotation;
-		}
 	}
 
 	void FixedUpdate () {
@@ -61,49 +57,24 @@ public class ControlePersonagem : MonoBehaviour {
 			return;
 		}
 
-		if (Physics.Raycast (transform.position, -Vector3.up, 0.1f)) {
-			GetComponent<Rigidbody> ().velocity = new Vector3 (0, -forcaPulo * 2, 0);
-			anim.enabled = true;
-		}
-
-		if (!noChao && statusAnim != 3 && anim.enabled == true) {
-			GetComponent<Rigidbody> ().velocity = new Vector3 (0, -forcaPulo * 2, 0);
-		}
-
-		if (t >= 1 && t <= 1.8f) {
-			t += Time.deltaTime;
-			if (t >= 1.4f) {
-				GetComponent<Rigidbody> ().velocity = new Vector3 (0, forcaPulo, 0);
-			}
-		}
-
-		if (t >= 1.8f) {
-			anim.enabled = false;
-			statusAnim = 0;
-			t = 0;
-		}
-
-		//Pular
-		if (Input.GetButtonDown ("Jump") || AuxClick.clickPular != 0) {
-			if (noChao && t == 0) {
-				statusAnim = 3;
-				t = 1;
-			}
-			AuxClick.clickPular = 0;
-		}
-
-		//Controles
-		hM = CrossPlatformInputManager.GetAxis ("Horizontal");
-		vM = CrossPlatformInputManager.GetAxis ("Vertical");
-
-		hPC = Input.GetAxis ("Horizontal");
-		vPC = Input.GetAxis ("Vertical");
-
 		//Nick
-		nick.text = "JOGADOR";
-		GetComponent<PhotonView> ().RPC ("Nick", PhotonTargets.All, "JOGADOR");
+		nick.text = "JOGADOR" + GetComponent<PhotonView>().viewID.ToString();
+		GetComponent<PhotonView> ().RPC ("Nick", PhotonTargets.All, nick.text.ToString());
 
 		//Movimentar
+		if (AuxTempoPartida.tempo == -1) {
+			//Controles
+			hM = CrossPlatformInputManager.GetAxis ("Horizontal");
+			vM = CrossPlatformInputManager.GetAxis ("Vertical");
+
+			hPC = Input.GetAxis ("Horizontal");
+			vPC = Input.GetAxis ("Vertical");
+		} else {
+			hM = 0;
+			vM = 0;
+			hPC = 0;
+			vPC = 0;
+		}
 		transform.Rotate (0, hM * Time.deltaTime * velH, 0);
 		transform.Rotate (0, hPC * Time.deltaTime * velH, 0);
 		transform.Translate (0, 0, vM * Time.deltaTime * velV);
@@ -131,6 +102,33 @@ public class ControlePersonagem : MonoBehaviour {
 					statusAnim = 0;
 				}
 			}
+		}
+			
+		//Pular
+		if (Input.GetKeyDown(KeyCode.Space) || AuxClick.clickPular != 0) {
+			if (noChao && t == 0) {
+				statusAnim = 3;
+				t = 1;
+			}
+			AuxClick.clickPular = 0;
+		}
+		if (Physics.Raycast (transform.position, -Vector3.up, 0.1f)) {
+			GetComponent<Rigidbody> ().velocity = new Vector3 (0, -forcaPulo * 2, 0);
+			anim.enabled = true;
+		}
+		if (!noChao && statusAnim != 3 && anim.enabled == true) {
+			GetComponent<Rigidbody> ().velocity = new Vector3 (0, -forcaPulo * 2, 0);
+		}
+		if (t >= 1 && t <= 1.8f) {
+			t += Time.deltaTime;
+			if (t >= 1.4f) {
+				GetComponent<Rigidbody> ().velocity = new Vector3 (0, forcaPulo, 0);
+			}
+		}
+		if (t >= 1.8f) {
+			anim.enabled = false;
+			statusAnim = 0;
+			t = 0;
 		}
 
 		//Tipo
@@ -164,16 +162,6 @@ public class ControlePersonagem : MonoBehaviour {
 	[PunRPC]
 	public void TipoPersonagem (int _tipo) {
 		Masc1Femi2 = _tipo;
-	}
-
-	[PunRPC]
-	public void ScalaPersonagem (Vector3 _scala) {
-		transform.localScale = _scala;
-	}
-
-	[PunRPC]
-	public void PosPersonagem (Vector3 _pos) {
-		transform.localPosition = _pos;
 	}
 
 }

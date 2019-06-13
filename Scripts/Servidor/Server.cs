@@ -6,33 +6,53 @@ using UnityEngine;
 public class Server : MonoBehaviour {
 
 	//Aux
-	private HUD AuxHUD;
-	private Click AuxClick;
+	private TempoPartida AuxTempoPartida;
+	private SpawnMoedas AuxSpawnMoedas;
 	private CameraAlvo AuxCameraAlvo;
 
 	public string nomeServer;
+	public int sexoPersonagem;
 	public GameObject meuPersonagem;
-	public GameObject[] personagens, listaJogadores;
+	public GameObject[] localInstJogador, personagens, listaJogadores;
 
 	void Start () {
-		AuxHUD = GameObject.Find ("HUD").GetComponent<HUD> ();
-		AuxClick = GameObject.Find ("HUD").GetComponent<Click> ();
 		AuxCameraAlvo = GameObject.Find ("CameraPrincipal").GetComponent<CameraAlvo> ();
-		Conectar ();
+		AuxSpawnMoedas = GameObject.Find ("LocaisInstMoedas").GetComponent<SpawnMoedas> ();
+		AuxTempoPartida = GameObject.Find ("TempoPartida").GetComponent<TempoPartida> ();
+		if (Application.internetReachability != NetworkReachability.NotReachable) {
+			Conectar ();
+		} else {
+			PhotonNetwork.offlineMode = true;
+			Conectar ();
+		}
 	}
 
 	void Update () {
 		listaJogadores = GameObject.FindGameObjectsWithTag ("Player");
-	}
-
-	public void SpawnPersonagem () {
 		if (PhotonNetwork.connectionStateDetailed == ClientState.Joined) {
-			if (meuPersonagem == null) {
-				meuPersonagem = PhotonNetwork.Instantiate (personagens [0].transform.name.ToString (), transform.position, transform.rotation, 0);
-				AuxCameraAlvo.Alvo = meuPersonagem;
-				Respawn ();
+			if (AuxTempoPartida.tempo == -1) {
+				for (int i = 0; i < listaJogadores.Length; i++) {
+					if (listaJogadores [i].GetComponent<Inventario> ().getMinhasMoedas () >= 10) {
+						if (meuPersonagem != null) {
+							meuPersonagem.GetComponent<Inventario> ().setMinhasMoedas (-meuPersonagem.GetComponent<Inventario> ().getMinhasMoedas ());
+						}
+						AuxSpawnMoedas.ResetarMoedas ();
+						Respawn ();
+						AuxTempoPartida.tempo = 0;
+					}
+				}
 			}
-			Debug.Log ("Conectado!");
+			if (AuxTempoPartida.tempo != -1) {
+				if (meuPersonagem == null) {
+					meuPersonagem = PhotonNetwork.Instantiate (personagens [sexoPersonagem].transform.name.ToString (), localInstJogador [listaJogadores.Length].transform.position, localInstJogador [listaJogadores.Length].transform.rotation, 0);
+					AuxCameraAlvo.Alvo = meuPersonagem;
+					Respawn ();
+				}
+			} else {
+				if (meuPersonagem == null && listaJogadores.Length > 0) {
+					AuxCameraAlvo.Alvo = listaJogadores [Random.Range (0, listaJogadores.Length)];
+				}
+			}
 		}
 	}
 
@@ -41,6 +61,7 @@ public class Server : MonoBehaviour {
 		meuPersonagem.transform.position = transform.position;
 		meuPersonagem.transform.rotation = transform.rotation;
 		meuPersonagem.GetComponent<Rigidbody> ().isKinematic = false;
+		print ("Parado!");
 	}
 
 	public void Conectar() {
@@ -68,7 +89,6 @@ public class Server : MonoBehaviour {
 	}
 
 	public void OnJoinedRoom() {
-		SpawnPersonagem ();
 		Debug.Log("Entrou na sala!");
 	}
 
